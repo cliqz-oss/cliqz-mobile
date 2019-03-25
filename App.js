@@ -8,52 +8,24 @@
 
 import React from 'react';
 import {
+  TouchableNativeFeedback,
   DeviceEventEmitter,
-  NativeModules,
+  Image,
   StyleSheet,
   TextInput,
+  Text,
   View,
 } from 'react-native';
 import './setup';
+import Cliqz from './Cliqz';
 import console from 'browser-core/build/modules/core/console';
 import SearchUIVertical from 'browser-core/build/modules/mobile-cards-vertical/SearchUI';
 import App from 'browser-core/build/modules/core/app';
 import { Provider as CliqzProvider } from 'browser-core/build/modules/mobile-cards/cliqz';
 import { Provider as ThemeProvider } from 'browser-core/build/modules/mobile-cards-vertical/withTheme';
 
-const Bridge = NativeModules.Bridge;
-
-class Cliqz {
-  constructor(app, actions) {
-    this.app = app;
-    this.app.modules['ui'] = {
-      status() {
-        return {
-          name: 'ui',
-          isEnabled: true,
-          loadingTime: 0,
-          loadingTimeSync: 0,
-          windows: [],
-          state: {},
-        };
-      },
-      name: 'ui',
-      action(action, ...args) {
-        return Promise.resolve().then(() => {
-          return actions[action](...args);
-        });
-      },
-      isEnabled: true,
-    };
-    this.mobileCards = app.modules['mobile-cards'].background.actions;
-    this.geolocation = app.modules['geolocation'].background.actions;
-    this.search = app.modules['search'].background.actions;
-    this.core = app.modules['core'].background.actions;
-  }
-}
-
 type Props = {};
-export default class myApp extends React.Component<Props> {
+export default class instantSearch extends React.Component<Props> {
   constructor(props) {
     super(props);
     this.state = {
@@ -101,6 +73,10 @@ export default class myApp extends React.Component<Props> {
     this.state.cliqz.search.startSearch(text);
   }
 
+  clear() {
+    this.setState({text: ''});
+  }
+
   reportError = error => {
     // should not happen
     if (!this.state.cliqz) {
@@ -120,14 +96,33 @@ export default class myApp extends React.Component<Props> {
     const appearance = 'light';
     return (
       <View style={styles.container}>
-        <TextInput
-          style={{height: 40, borderColor: 'gray', borderWidth: 3}}
-          onChangeText={this.search.bind(this)}
-          value={this.state.text}
-        />
+        <View style={styles.searchBox}>
+          <View style={{flex:5}}>
+            <TextInput
+                onChangeText={this.search.bind(this)}
+                placeholder="Start here"
+                style={{backgroundColor:'transparent'}}
+                value={this.state.text}
+              />
+          </View>
+          {
+            this.state.text !== '' && (
+              <View>
+                <TouchableNativeFeedback onPress={this.clear.bind(this)}>
+                  <Text >X</Text>
+                </TouchableNativeFeedback>
+              </View>
+            )
+          }
+        </View>
         {
-          (results.length === 0) || !this.state.cliqz
-          ? null
+          results.length === 0 || !this.state.cliqz || this.state.text ===''
+          ? (
+            <View style={styles.noresult}>
+              <Image source={require('./img/logo.png')} style={{width: 30, height: 30}}/>
+              <Text style={styles.noresultText}>Powered by Cliqz search</Text>
+            </View>
+          )
           : (
             <CliqzProvider value={this.state.cliqz}>
               <ThemeProvider value={appearance}>
@@ -144,7 +139,27 @@ export default class myApp extends React.Component<Props> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  searchBox: {
+    flexDirection:'row',
+    height: 40,
+    margin: 10,
+    alignItems:'center',
+    justifyContent:'center',
+    borderWidth:1,
+    borderColor:'#888',
+    borderRadius:25,
+    backgroundColor:"#fff",
+    paddingLeft: 20,
+    paddingRight: 20,
+  },
+  noresult: {
+    flexDirection: 'row',
     justifyContent: 'center',
-    backgroundColor: '#F5FCFF',
+    marginTop: 10,
+  },
+  noresultText: {
+    marginLeft: 5,
+    marginTop: 5,
   },
 });
