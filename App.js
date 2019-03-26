@@ -8,12 +8,14 @@
 
 import React from 'react';
 import {
-  TouchableHighlight,
   DeviceEventEmitter,
+  KeyboardAvoidingView,
   Image,
+  Linking,
   StyleSheet,
-  TextInput,
   Text,
+  TextInput,
+  TouchableHighlight,
   View,
 } from 'react-native';
 import './setup';
@@ -94,8 +96,9 @@ export default class instantSearch extends React.Component<Props> {
     const results = this.state.results.results || [];
     const meta = this.state.results.meta || {};
     const appearance = 'light';
+    const hasResults = !(results.length === 0 || !this.state.cliqz || this.state.text ==='');
     return (
-      <View style={styles.container}>
+      <KeyboardAvoidingView style={styles.container} enabled={!hasResults}>
         <View style={styles.searchBox}>
           <View style={{flex:5}}>
             <TextInput
@@ -110,14 +113,14 @@ export default class instantSearch extends React.Component<Props> {
             this.state.text !== '' && (
               <View>
                 <TouchableHighlight style={styles.clear} onPress={this.clear.bind(this)}>
-                  <Image source={require('./img/clear.png')} style={{width: 20, height: 20}}/>
+                  <Image source={require('./img/clear.png')} style={{width: 15, height: 15}}/>
                 </TouchableHighlight>
               </View>
             )
           }
         </View>
         {
-          results.length === 0 || !this.state.cliqz || this.state.text ===''
+          !hasResults
           ? (
             // <View style={styles.noresult}>
             //   <Image source={require('./img/logo.png')} style={{width: 30, height: 30}}/>
@@ -133,7 +136,11 @@ export default class instantSearch extends React.Component<Props> {
             </CliqzProvider>
           )
         }
-      </View>
+        { !hasResults &&
+          <View style={{position: 'absolute', left: 0, right: 0, bottom: 10}}>
+            <Text style={{color: '#0078CA', textAlign: 'center'}} onPress={() => Linking.openURL('https://cliqz.com/en/privacy-browser')}>Privacy policy</Text>
+          </View>}
+      </KeyboardAvoidingView>
     );
   }
 }
