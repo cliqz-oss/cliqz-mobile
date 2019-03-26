@@ -100,7 +100,7 @@ export default class instantSearch extends React.Component<Props> {
           <View style={{flex:5}}>
             <TextInput
                 onChangeText={this.search.bind(this)}
-                placeholder="Start here"
+                placeholder="Search now"
                 autoFocus={true}
                 style={styles.text}
                 value={this.state.text}
@@ -110,7 +110,7 @@ export default class instantSearch extends React.Component<Props> {
             this.state.text !== '' && (
               <View>
                 <TouchableHighlight style={styles.clear} onPress={this.clear.bind(this)}>
-                  <Text style={{fontWeight: 'bold'}}>x</Text>
+                  <Image source={require('./img/clear.png')} style={{width: 20, height: 20}}/>
                 </TouchableHighlight>
               </View>
             )
@@ -119,10 +119,11 @@ export default class instantSearch extends React.Component<Props> {
         {
           results.length === 0 || !this.state.cliqz || this.state.text ===''
           ? (
-            <View style={styles.noresult}>
-              <Image source={require('./img/logo.png')} style={{width: 30, height: 30}}/>
-              <Text style={styles.noresultText}>Powered by Cliqz search</Text>
-            </View>
+            // <View style={styles.noresult}>
+            //   <Image source={require('./img/logo.png')} style={{width: 30, height: 30}}/>
+            //   <Text style={styles.noresultText}>Powered by Cliqz search</Text>
+            // </View>
+            null
           )
           : (
             <CliqzProvider value={this.state.cliqz}>
@@ -137,9 +138,19 @@ export default class instantSearch extends React.Component<Props> {
   }
 }
 
+const theme = {
+  dark: {
+    backgroundColor: 'rgba(0, 9, 23, 0.85)',
+  },
+  light: {
+    backgroundColor: 'rgba(243, 244, 245, 0.93)',
+  }
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.light.backgroundColor,
   },
   searchBox: {
     flexDirection:'row',
