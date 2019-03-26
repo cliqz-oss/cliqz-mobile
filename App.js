@@ -8,7 +8,7 @@
 
 import React from 'react';
 import {
-  TouchableNativeFeedback,
+  TouchableHighlight,
   DeviceEventEmitter,
   Image,
   StyleSheet,
@@ -101,16 +101,17 @@ export default class instantSearch extends React.Component<Props> {
             <TextInput
                 onChangeText={this.search.bind(this)}
                 placeholder="Start here"
-                style={{backgroundColor:'transparent'}}
+                autoFocus={true}
+                style={styles.text}
                 value={this.state.text}
               />
           </View>
           {
             this.state.text !== '' && (
               <View>
-                <TouchableNativeFeedback onPress={this.clear.bind(this)}>
-                  <Text >X</Text>
-                </TouchableNativeFeedback>
+                <TouchableHighlight style={styles.clear} onPress={this.clear.bind(this)}>
+                  <Text style={{fontWeight: 'bold'}}>x</Text>
+                </TouchableHighlight>
               </View>
             )
           }
@@ -150,8 +151,10 @@ const styles = StyleSheet.create({
     borderColor:'#888',
     borderRadius:25,
     backgroundColor:"#fff",
+  },
+  text: {
+    backgroundColor: 'transparent',
     paddingLeft: 20,
-    paddingRight: 20,
   },
   noresult: {
     flexDirection: 'row',
@@ -162,4 +165,9 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginTop: 5,
   },
+  clear: {
+    padding: 10,
+    paddingLeft: 15,
+    paddingRight: 20
+  }
 });
