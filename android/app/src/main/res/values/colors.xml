@@ -2,4 +2,5 @@
 <resources>
     <color name="cliqz_blue">#00AFD0</color>
     <color name="widget_text_color">#CCC</color>
+    <color name="ic_launcher_background">#000714</color>
 </resources>
