@@ -1,4 +1,4 @@
-package com.cliqzmobile;
+package com.cliqz.searchapp;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -12,21 +12,21 @@ import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/**
- * Copyright © Cliqz 2019
- */
 public class NativeDrawableManager extends SimpleViewManager<ImageView> {
 
     private static final String REACT_CLASS = "NativeDrawable";
     private static final String TAG = NativeDrawableManager.class.getSimpleName();
 
+    @Nonnull
     @Override
     public String getName() {
         return REACT_CLASS;
     }
 
+    @Nonnull
     @Override
     protected ImageView createViewInstance(ThemedReactContext reactContext) {
         return new ImageView(reactContext);
