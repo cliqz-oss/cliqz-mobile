@@ -2,7 +2,7 @@ package com.cliqz.searchapp;
 
 import android.app.Application;
 
-import com.cliqz.BuildConfig;
+import com.cliqz.searchapp.BuildConfig;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
