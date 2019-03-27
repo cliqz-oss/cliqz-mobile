@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_root_view"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:background="@drawable/widget_background"
+    android:padding="@dimen/widget_padding_size"
+    android:layout_marginTop="@dimen/widget_margin_size"
+    android:layout_marginBottom="@dimen/widget_margin_size">
+
+    <ImageView
+        android:layout_width="@dimen/widget_search_icon_size"
+        android:layout_height="@dimen/widget_search_icon_size"
+        android:src="@android:drawable/ic_menu_search"
+        android:tint="@color/cliqz_blue"
+        android:layout_gravity="end|center_vertical"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start|center_vertical"
+        android:textColor="@color/widget_text_color"
+        android:text="@string/widget_inner_text"
+        android:layout_marginEnd="@dimen/widget_text_end_margin"
+        android:layout_marginStart="@dimen/widget_text_start_margin"
+        android:background="@drawable/widget_text_background"
+        android:layout_marginRight="@dimen/widget_text_end_margin"
+        android:layout_marginLeft="@dimen/widget_text_start_margin" />
+</FrameLayout>

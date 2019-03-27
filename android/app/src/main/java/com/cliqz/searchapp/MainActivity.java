@@ -1,4 +1,4 @@
-package com.cliqzmobile;
+package com.cliqz.searchapp;
 
 import com.facebook.react.ReactActivity;
 
