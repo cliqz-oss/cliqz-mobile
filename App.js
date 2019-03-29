@@ -38,6 +38,7 @@ export default class instantSearch extends React.Component<Props> {
         results: []
       }
     };
+    this.textInputRef = React.createRef();
   }
 
   onAction = ({ module, action, args, id }) => {
@@ -77,6 +78,7 @@ export default class instantSearch extends React.Component<Props> {
 
   clear() {
     this.setState({text: ''});
+    if (this.textInputRef.current) this.textInputRef.current.focus();
   }
 
   submit = () => {
@@ -124,6 +126,7 @@ export default class instantSearch extends React.Component<Props> {
                 returnKeyType='search'
                 style={styles.text}
                 value={this.state.text}
+                ref={this.textInputRef}
               />
           </View>
           {
