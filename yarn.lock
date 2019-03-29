@@ -1383,9 +1383,9 @@ braces@^2.3.1:
     split-string "^3.0.2"
     to-regex "^3.0.1"
 
-"browser-core@https://s3.amazonaws.com/cdncliqz/update/edge/rn-ghostery-android/cliqz-mobile/1.36.0.17a698f.tgz":
+"browser-core@https://s3.amazonaws.com/cdncliqz/update/edge/rn-ghostery-android/cliqz-mobile/1.36.0.9fcac3a.tgz":
   version "1.36.0"
-  resolved "https://s3.amazonaws.com/cdncliqz/update/edge/rn-ghostery-android/cliqz-mobile/1.36.0.17a698f.tgz#6d50e11319190de5980f236dabebe5e3f2477f37"
+  resolved "https://s3.amazonaws.com/cdncliqz/update/edge/rn-ghostery-android/cliqz-mobile/1.36.0.9fcac3a.tgz#b543b95247c6f9465bc6840e245fbd72d11a2b30"
   dependencies:
     "@cliqz-oss/dexie" "^2.0.4"
     "@cliqz/adblocker" "^0.7.0"

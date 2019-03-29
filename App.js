@@ -79,6 +79,21 @@ export default class instantSearch extends React.Component<Props> {
     this.setState({text: ''});
   }
 
+  submit = () => {
+    /*
+     * If there is only navigate to result, it opens the url
+     * in default browser, else on submit it opens the
+     * cliqz serp with query in default browser.
+     */
+    const { results } = this.state.results;
+    const query = (this.state.text || '').trim();
+    if (results.length === 1 && results[0].type === 'navigate-to') {
+      Linking.openURL(results[0].url);
+    } else if (query){
+      Linking.openURL(`https://suche.cliqz.com/#${query}`);
+    }
+  }
+
   reportError = error => {
     // should not happen
     if (!this.state.cliqz) {
@@ -103,8 +118,10 @@ export default class instantSearch extends React.Component<Props> {
           <View style={{flex:5}}>
             <TextInput
                 onChangeText={this.search.bind(this)}
+                onSubmitEditing={this.submit}
                 placeholder="Search now"
                 autoFocus={true}
+                returnKeyType='search'
                 style={styles.text}
                 value={this.state.text}
               />
@@ -166,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems:'center',
     justifyContent:'center',
     borderWidth:1,
-    borderColor:'#888',
+    borderColor:'#00B0F6',
     borderRadius:25,
     backgroundColor:"#fff",
   },
