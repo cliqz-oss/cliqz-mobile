@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="cliqz_blue">#00AFD0</color>
-    <color name="widget_text_color">#CCC</color>
+    <color name="cliqz_blue">#00B0F6</color>
+    <color name="widget_text_color">@color/cliqz_blue</color>
     <color name="ic_launcher_background">#000714</color>
+    <color name="widget_background_color">@color/ic_launcher_background</color>
 </resources>
