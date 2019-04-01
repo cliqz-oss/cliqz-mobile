@@ -119,6 +119,7 @@ export default class instantSearch extends React.Component<Props> {
         <View style={styles.searchBox}>
           <View style={{flex:5}}>
             <TextInput
+                autoCapitalize = 'none'
                 onChangeText={this.search.bind(this)}
                 onSubmitEditing={this.submit}
                 placeholder="Search now"
@@ -192,7 +193,9 @@ const styles = StyleSheet.create({
   },
   text: {
     backgroundColor: 'transparent',
+    paddingBottom: 0,
     paddingLeft: 20,
+    paddingTop: 0,
   },
   noresult: {
     flexDirection: 'row',
