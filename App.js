@@ -15,9 +15,16 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  Keyboard,
   TouchableHighlight,
+  ScrollView,
   View,
+  Dimensions,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import './setup';
 import Cliqz from './Cliqz';
 import console from 'browser-core/build/modules/core/console';
@@ -26,8 +33,7 @@ import App from 'browser-core/build/modules/core/app';
 import { Provider as CliqzProvider } from 'browser-core/build/modules/mobile-cards/cliqz';
 import { Provider as ThemeProvider } from 'browser-core/build/modules/mobile-cards-vertical/withTheme';
 
-type Props = {};
-export default class instantSearch extends React.Component<Props> {
+export default class instantSearch extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -36,8 +42,12 @@ export default class instantSearch extends React.Component<Props> {
       config: {},
       results: {
         results: []
-      }
+      },
+      scrollable: true,
+      webViewLoaded: true,
     };
+    this.scrollView = React.createRef();
+    this.resultsScrollView = React.createRef();
     this.textInputRef = React.createRef();
   }
 
@@ -55,7 +65,7 @@ export default class instantSearch extends React.Component<Props> {
     this.loadingPromise = app.start().then(async () => {
       await app.ready();
       const config = {};//await Bridge.getConfig();
-      cliqz = new Cliqz(app, this.actions);
+      cliqz = new Cliqz(app, this.actions, this.setState.bind(this));
       this.setState({
         cliqz,
         config,
@@ -63,6 +73,13 @@ export default class instantSearch extends React.Component<Props> {
       app.events.sub('search:results', (results) => {
         this.setState({ results })
       });
+      cliqz.mobileCards.openLink = (url) => {
+        this.scrollView.current.scrollTo({x: 0, y: Dimensions.get('screen').height, animated: true})
+        this.setState({
+          url,
+          webViewLoaded: false,
+        });
+      };
     }).catch(console.log);
     DeviceEventEmitter.addListener('action', this.onAction);
   }
@@ -72,7 +89,10 @@ export default class instantSearch extends React.Component<Props> {
   }
 
   search(text) {
-    this.setState({text});
+    this.setState({
+      text,
+      url: `https://www.google.com/search?q=${text}`,
+    });
     this.state.cliqz.search.startSearch(text);
   }
 
@@ -82,18 +102,7 @@ export default class instantSearch extends React.Component<Props> {
   }
 
   submit = () => {
-    /*
-     * If there is only navigate to result, it opens the url
-     * in default browser, else on submit it opens the
-     * cliqz serp with query in default browser.
-     */
-    const { results } = this.state.results;
-    const query = (this.state.text || '').trim();
-    if (results.length === 1 && results[0].type === 'navigate-to') {
-      Linking.openURL(results[0].url);
-    } else if (query){
-      Linking.openURL(`https://suche.cliqz.com/#${query}`);
-    }
+    Keyboard.dismiss();
   }
 
   reportError = error => {
@@ -124,7 +133,11 @@ export default class instantSearch extends React.Component<Props> {
                 onSubmitEditing={this.submit}
                 placeholder="Search now"
                 autoFocus={true}
-                returnKeyType='search'
+                returnKeyType='done'
+                onFocus={() => {
+                  this.resultsScrollView.current && this.resultsScrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
+                  this.scrollView.current && this.scrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
+                }}
                 style={styles.text}
                 value={this.state.text}
                 ref={this.textInputRef}
@@ -150,11 +163,84 @@ export default class instantSearch extends React.Component<Props> {
             null
           )
           : (
-            <CliqzProvider value={this.state.cliqz}>
-              <ThemeProvider value={appearance}>
-                <SearchUIVertical results={results} meta={meta} theme={appearance} />
-              </ThemeProvider>
-            </CliqzProvider>
+            <ScrollView style={{  }}
+              ref={this.scrollView}
+              snapToOffsets={[Dimensions.get('screen').height ]}
+              scrollEnabled={this.state.scrollable}
+              onScroll={e => {
+                let paddingToBottom = 10;
+                paddingToBottom += e.nativeEvent.layoutMeasurement.height;
+                if(e.nativeEvent.contentOffset.y >= e.nativeEvent.contentSize.height - paddingToBottom) {
+                  this.setState({scrollable: false})
+                  // make something...
+                }
+              }}
+
+            >
+              <ScrollView style={{height: Dimensions.get('screen').height - 78 }} nestedScrollEnabled={true} ref={this.resultsScrollView}>
+                <CliqzProvider value={this.state.cliqz}>
+                  <ThemeProvider value={appearance}>
+                    <SearchUIVertical results={results} meta={meta} theme={appearance} />
+                  </ThemeProvider>
+                </CliqzProvider>
+                <View style={{height: 200, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text>
+                    {this.state.url && this.state.url.startsWith('https://www.google.com/search')
+                      ? `Scroll down to search Google for "${this.state.text}"`
+                      : `Previous website is below`
+                    }
+                  </Text>
+                </View>
+              </ScrollView>
+
+              <View style={{ height: Dimensions.get('screen').height  - 78 }} >
+                  {!this.state.scrollable && this.state.webViewLoaded &&
+                    <TouchableOpacity
+                      onPress={() => {
+                        this.scrollView.current.scrollTo({x: 0, y: 0, animated: true});
+                        this.resultsScrollView.current.scrollTo({x: 0, y: 0, animated: true});
+                        this.setState({ scrollable: true, })
+                      }}
+
+                      style={{
+                        elevation: 6,
+                        zIndex: 1000,
+                        position: 'absolute',
+                        backgroundColor: '#00AEF0',
+                        height: 60,
+                        width: 60,
+                        right: 30,
+                        bottom: 300,
+                        borderRadius: 30,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Icon name={'search'} size={30} color="white" />
+                    </TouchableOpacity>
+                  }
+                <WebView
+                  nestedScrollEnabled={true}
+                  scrollEnabled={true}
+                  onLoadStart={() => setTimeout(() => this.setState({ webViewLoaded: true }), 1000) }
+                  style={{ height: Dimensions.get('screen').height  - 78}}
+                  source={{uri: this.state.url}}
+                />
+                {!this.state.webViewLoaded &&
+                  <View style={{
+                    position: 'absolute',
+                    backgroundColor: 'white',
+                    zIndex: 1001,
+                    height: Dimensions.get('screen').height,
+                    width: '100%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                    <Text>Loading..</Text>
+                  </View>
+                }
+              </View>
+            </ScrollView>
           )
         }
         { !hasResults &&

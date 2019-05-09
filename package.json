@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node node_modules/react-native/local-cli/cli.js start --reset-cache",
+    "start": "react-native start --reset-cache",
+    "build-android": "react-native bundle --platform android --entry-file index.js --bundle-output ./android/app/src/main/assets/index.android.bundle --dev=false --reset-cache",
+    "run-android": "react-native run-android",
     "test": "jest"
   },
   "dependencies": {
@@ -12,7 +14,9 @@
     "react-native": "0.59.1",
     "react-native-gesture-handler": "^1.0.12",
     "react-native-snap-carousel": "^3.7.5",
-    "react-native-view-shot": "^2.2.0"
+    "react-native-vector-icons": "^6.4.2",
+    "react-native-view-shot": "^2.2.0",
+    "react-native-webview": "^5.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.4.0",
