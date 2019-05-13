@@ -158,12 +158,26 @@ export default class instantSearch extends React.Component {
                 nestedScrollEnabled={true}
                 ref={this.resultsScrollView}
               >
-                <View style={{ height: 35 }} />
-                <CliqzProvider value={this.state.cliqz}>
-                  <ThemeProvider value={appearance}>
-                    <SearchUIVertical results={results} meta={meta} theme={appearance} />
-                  </ThemeProvider>
-                </CliqzProvider>
+                <View style={{ height: 25 }} />
+                <View style={{
+                  backgroundColor: 'rgb(245,245,245)',
+                  flex: 1,
+                  marginRight: 10,
+                  marginLeft: 10,
+                  borderColor: '#00B0F6',
+                  borderLeftWidth: 1,
+                  borderRightWidth: 1,
+                  borderBottomWidth: 1,
+                  borderBottomLeftRadius: 25,
+                  borderBottomRightRadius: 25,
+                  paddingTop: 20,
+                }}>
+                  <CliqzProvider value={this.state.cliqz}>
+                    <ThemeProvider value={appearance}>
+                      <SearchUIVertical results={results} meta={meta} theme={appearance} />
+                    </ThemeProvider>
+                  </CliqzProvider>
+                </View>
                 <View style={{height: 200, alignItems: 'center', justifyContent: 'center' }}>
                   <Text>
                     {this.state.url && this.state.url.startsWith('https://www.google.com/search')
@@ -200,7 +214,7 @@ export default class instantSearch extends React.Component {
                 {!this.state.webViewLoaded &&
                   <View style={{
                     position: 'absolute',
-                    backgroundColor: 'white',
+                    backgroundColor: theme.light.backgroundColor,
                     zIndex: 1001,
                     height: Dimensions.get('screen').height,
                     width: '100%',
