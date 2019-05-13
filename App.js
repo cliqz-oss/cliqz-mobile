@@ -10,28 +10,23 @@ import React from 'react';
 import {
   DeviceEventEmitter,
   KeyboardAvoidingView,
-  Image,
   Linking,
   StyleSheet,
   Text,
-  TextInput,
-  Keyboard,
-  TouchableHighlight,
   ScrollView,
   View,
   Dimensions,
-  TouchableOpacity,
-  ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import './setup';
 import Cliqz from './Cliqz';
 import console from 'browser-core/build/modules/core/console';
 import SearchUIVertical from 'browser-core/build/modules/mobile-cards-vertical/SearchUI';
 import App from 'browser-core/build/modules/core/app';
 import { Provider as CliqzProvider } from 'browser-core/build/modules/mobile-cards/cliqz';
 import { Provider as ThemeProvider } from 'browser-core/build/modules/mobile-cards-vertical/withTheme';
+import UrlBar from './components/UrlBar';
+import BackButton from './components/BackButton';
 
 export default class instantSearch extends React.Component {
   constructor(props) {
@@ -48,7 +43,6 @@ export default class instantSearch extends React.Component {
     };
     this.scrollView = React.createRef();
     this.resultsScrollView = React.createRef();
-    this.textInputRef = React.createRef();
   }
 
   onAction = ({ module, action, args, id }) => {
@@ -88,21 +82,12 @@ export default class instantSearch extends React.Component {
     DeviceEventEmitter.removeAllListeners();
   }
 
-  search(text) {
+  search = (text) => {
     this.setState({
       text,
       url: `https://www.google.com/search?q=${text}`,
     });
     this.state.cliqz.search.startSearch(text);
-  }
-
-  clear() {
-    this.setState({text: ''});
-    if (this.textInputRef.current) this.textInputRef.current.focus();
-  }
-
-  submit = () => {
-    Keyboard.dismiss();
   }
 
   reportError = error => {
@@ -123,35 +108,25 @@ export default class instantSearch extends React.Component {
     const meta = this.state.results.meta || {};
     const appearance = 'light';
     const hasResults = !(results.length === 0 || !this.state.cliqz || this.state.text ==='');
+    const statusBarHeight = StatusBar.currentHeight;
+    StatusBar.setBackgroundColor(theme.light.backgroundColor, true);
+    StatusBar.setBarStyle('dark-content', true);
     return (
       <KeyboardAvoidingView style={styles.container} enabled={!hasResults}>
-        <View style={styles.searchBox}>
-          <View style={{flex:5}}>
-            <TextInput
-                autoCapitalize = 'none'
-                onChangeText={this.search.bind(this)}
-                onSubmitEditing={this.submit}
-                placeholder="Search now"
-                autoFocus={true}
-                returnKeyType='done'
-                onFocus={() => {
-                  this.resultsScrollView.current && this.resultsScrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
-                  this.scrollView.current && this.scrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
-                }}
-                style={styles.text}
-                value={this.state.text}
-                ref={this.textInputRef}
-              />
-          </View>
-          {
-            this.state.text !== '' && (
-              <View>
-                <TouchableHighlight style={styles.clear} onPress={this.clear.bind(this)}>
-                  <Image source={require('./img/clear.png')} style={{width: 15, height: 15}}/>
-                </TouchableHighlight>
-              </View>
-            )
-          }
+        <View style={styles.urlbarContainer}>
+          <View style={styles.urlbarHalfBackground}/>
+          <UrlBar
+            value={this.state.text}
+            onChanged={this.search}
+            onFocus={() => {
+              this.resultsScrollView.current && this.resultsScrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
+              this.scrollView.current && this.scrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
+            }}
+            onClear={() => {
+              this.setState({ text: '' });
+            }}
+            style={styles.urlbar}
+          />
         </View>
         {
           !hasResults
@@ -163,7 +138,7 @@ export default class instantSearch extends React.Component {
             null
           )
           : (
-            <ScrollView style={{  }}
+            <ScrollView style={{ height: Dimensions.get('screen').height - statusBarHeight }}
               ref={this.scrollView}
               snapToOffsets={[Dimensions.get('screen').height ]}
               scrollEnabled={this.state.scrollable}
@@ -175,9 +150,15 @@ export default class instantSearch extends React.Component {
                   // make something...
                 }
               }}
-
             >
-              <ScrollView style={{height: Dimensions.get('screen').height - 78 }} nestedScrollEnabled={true} ref={this.resultsScrollView}>
+              <ScrollView
+                style={{
+                  height: Dimensions.get('screen').height - statusBarHeight,
+                }}
+                nestedScrollEnabled={true}
+                ref={this.resultsScrollView}
+              >
+                <View style={{ height: 35 }} />
                 <CliqzProvider value={this.state.cliqz}>
                   <ThemeProvider value={appearance}>
                     <SearchUIVertical results={results} meta={meta} theme={appearance} />
@@ -193,37 +174,27 @@ export default class instantSearch extends React.Component {
                 </View>
               </ScrollView>
 
-              <View style={{ height: Dimensions.get('screen').height  - 78 }} >
+              <View style={{
+                height: Dimensions.get('screen').height  - statusBarHeight,
+                backgroundColor: theme.light.backgroundColor,
+              }} >
                   {!this.state.scrollable && this.state.webViewLoaded &&
-                    <TouchableOpacity
+                    <BackButton
                       onPress={() => {
                         this.scrollView.current.scrollTo({x: 0, y: 0, animated: true});
                         this.resultsScrollView.current.scrollTo({x: 0, y: 0, animated: true});
                         this.setState({ scrollable: true, })
                       }}
-
-                      style={{
-                        elevation: 6,
-                        zIndex: 1000,
-                        position: 'absolute',
-                        backgroundColor: '#00AEF0',
-                        height: 60,
-                        width: 60,
-                        right: 30,
-                        bottom: 300,
-                        borderRadius: 30,
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Icon name={'search'} size={30} color="white" />
-                    </TouchableOpacity>
+                    />
                   }
                 <WebView
                   nestedScrollEnabled={true}
                   scrollEnabled={true}
                   onLoadStart={() => setTimeout(() => this.setState({ webViewLoaded: true }), 1000) }
-                  style={{ height: Dimensions.get('screen').height  - 78}}
+                  style={{
+                    height: Dimensions.get('screen').height  - statusBarHeight,
+                    marginTop: 45,
+                  }}
                   source={{uri: this.state.url}}
                 />
                 {!this.state.webViewLoaded &&
@@ -257,31 +228,37 @@ const theme = {
     backgroundColor: 'rgba(0, 9, 23, 0.85)',
   },
   light: {
-    backgroundColor: 'rgba(243, 244, 245, 0.93)',
+    backgroundColor: 'rgba(240, 240, 240, 1)',
   }
 }
 
 const styles = StyleSheet.create({
+  urlbarContainer: {
+    position: 'absolute',
+    top: 0,
+    zIndex: 2000,
+    width: '100%',
+  },
+  urlbarHalfBackground: {
+    position: 'absolute',
+    width: '100%',
+    top: 0,
+    height: 45/2,
+    zIndex: 1999,
+    backgroundColor: theme.light.backgroundColor,
+  },
+  urlbar: {
+    marginTop: 5,
+    marginLeft: 10,
+    marginRight: 10,
+    marginBottom: 5,
+    zIndex: 2000,
+    backgroundColor: 'white',
+    // total height is 45 = 35 (TextInput height) + 5 (marginTop) + 5 (marginBottom)
+  },
   container: {
     flex: 1,
     backgroundColor: theme.light.backgroundColor,
-  },
-  searchBox: {
-    flexDirection:'row',
-    height: 40,
-    margin: 10,
-    alignItems:'center',
-    justifyContent:'center',
-    borderWidth:1,
-    borderColor:'#00B0F6',
-    borderRadius:25,
-    backgroundColor:"#fff",
-  },
-  text: {
-    backgroundColor: 'transparent',
-    paddingBottom: 0,
-    paddingLeft: 20,
-    paddingTop: 0,
   },
   noresult: {
     flexDirection: 'row',
@@ -292,9 +269,4 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginTop: 5,
   },
-  clear: {
-    padding: 10,
-    paddingLeft: 15,
-    paddingRight: 20
-  }
 });
