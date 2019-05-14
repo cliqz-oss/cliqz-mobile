@@ -16,6 +16,7 @@ import {
   ScrollView,
   View,
   Dimensions,
+  Image,
   StatusBar,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -129,19 +130,12 @@ export default class instantSearch extends React.Component {
           />
         </View>
         {
-          !hasResults
-          ? (
-            // <View style={styles.noresult}>
-            //   <Image source={require('./img/logo.png')} style={{width: 30, height: 30}}/>
-            //   <Text style={styles.noresultText}>Powered by Cliqz search</Text>
-            // </View>
-            null
-          )
-          : (
-            <ScrollView style={{ height: Dimensions.get('screen').height - statusBarHeight }}
+          (
+            <ScrollView
+              style={{ height: Dimensions.get('screen').height - statusBarHeight,  }}
               ref={this.scrollView}
               snapToOffsets={[Dimensions.get('screen').height ]}
-              scrollEnabled={this.state.scrollable}
+              scrollEnabled={hasResults && this.state.scrollable}
               onScroll={e => {
                 let paddingToBottom = 10;
                 paddingToBottom += e.nativeEvent.layoutMeasurement.height;
@@ -155,7 +149,8 @@ export default class instantSearch extends React.Component {
                 style={{
                   height: Dimensions.get('screen').height - statusBarHeight,
                 }}
-                nestedScrollEnabled={true}
+                nestedScrollEnabled={hasResults && this.state.scrollable}
+                scrollEnabled={hasResults && this.state.scrollable}
                 ref={this.resultsScrollView}
               >
                 <View style={{ height: 25 }} />
@@ -170,21 +165,32 @@ export default class instantSearch extends React.Component {
                   borderBottomWidth: 1,
                   borderBottomLeftRadius: 25,
                   borderBottomRightRadius: 25,
-                  paddingTop: 20,
+                  paddingTop: 10,
+                  paddingBottom: 10,
                 }}>
+                {!hasResults ? (
+                  <View style={styles.noresult}>
+                    <Image source={require('./img/logo.png')} style={{width: 30, height: 30, marginBottom: 10, marginTop: 10, }}/>
+                    <Text style={styles.noresultText}>Powered by Cliqz search</Text>
+                  </View>
+                ) : (
                   <CliqzProvider value={this.state.cliqz}>
                     <ThemeProvider value={appearance}>
                       <SearchUIVertical results={results} meta={meta} theme={appearance} />
                     </ThemeProvider>
                   </CliqzProvider>
+
+                )}
                 </View>
                 <View style={{height: 200, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text>
-                    {this.state.url && this.state.url.startsWith('https://www.google.com/search')
-                      ? `Scroll down to search Google for "${this.state.text}"`
-                      : `Previous website is below`
-                    }
-                  </Text>
+                  {hasResults &&
+                    <Text>
+                      {this.state.url && this.state.url.startsWith('https://www.google.com/search')
+                        ? `Scroll down to search Google for "${this.state.text}"`
+                        : `Previous website is below`
+                      }
+                    </Text>
+                  }
                 </View>
               </ScrollView>
 
@@ -206,7 +212,7 @@ export default class instantSearch extends React.Component {
                   scrollEnabled={true}
                   onLoadStart={() => setTimeout(() => this.setState({ webViewLoaded: true }), 1000) }
                   style={{
-                    height: Dimensions.get('screen').height  - statusBarHeight,
+                    height: Dimensions.get('screen').height  - statusBarHeight - 45,
                     marginTop: 45,
                   }}
                   source={{uri: this.state.url}}
@@ -277,7 +283,8 @@ const styles = StyleSheet.create({
   noresult: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 10,
+    alignItems: 'center',
+    marginTop: 15,
   },
   noresultText: {
     marginLeft: 5,
