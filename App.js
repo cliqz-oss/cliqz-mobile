@@ -85,8 +85,9 @@ export default class instantSearch extends React.Component {
 
   search = (text) => {
     this.setState({
+      scrollable: true,
       text,
-      url: `https://www.google.com/search?q=${text}`,
+      url: `https://www.google.de/search?q=${text}`,
     });
     this.state.cliqz.search.startSearch(text);
   }
@@ -110,8 +111,8 @@ export default class instantSearch extends React.Component {
     const appearance = 'light';
     const hasResults = !(results.length === 0 || !this.state.cliqz || this.state.text ==='');
     const statusBarHeight = StatusBar.currentHeight;
-    StatusBar.setBackgroundColor(theme.light.backgroundColor, true);
-    StatusBar.setBarStyle('dark-content', true);
+    StatusBar.setBackgroundColor(theme.dark.backgroundColor, true);
+    StatusBar.setBarStyle('light-content', true);
     return (
       <KeyboardAvoidingView style={styles.container} enabled={!hasResults}>
         <View style={styles.urlbarContainer}>
@@ -155,23 +156,19 @@ export default class instantSearch extends React.Component {
               >
                 <View style={{ height: 25 }} />
                 <View style={{
-                  backgroundColor: 'rgb(245,245,245)',
+                  backgroundColor: 'white',
                   flex: 1,
-                  marginRight: 10,
-                  marginLeft: 10,
-                  borderColor: '#00B0F6',
-                  borderLeftWidth: 1,
-                  borderRightWidth: 1,
-                  borderBottomWidth: 1,
-                  borderBottomLeftRadius: 25,
-                  borderBottomRightRadius: 25,
+                  marginRight: 20,
+                  marginLeft: 20,
+                  borderBottomLeftRadius: 10,
+                  borderBottomRightRadius: 10,
                   paddingTop: 10,
                   paddingBottom: 10,
                 }}>
                 {!hasResults ? (
                   <View style={styles.noresult}>
-                    <Image source={require('./img/logo.png')} style={{width: 30, height: 30, marginBottom: 10, marginTop: 10, }}/>
-                    <Text style={styles.noresultText}>Powered by Cliqz search</Text>
+                    <Image source={require('./img/lumen.png')} style={{ alignSelf: 'center', width: 50, height: 50, marginBottom: 0, marginTop: 10, }}/>
+                    <Text style={styles.noresultText}>Lumen private suche für sorgenfreies surfen</Text>
                   </View>
                 ) : (
                   <CliqzProvider value={this.state.cliqz}>
@@ -184,21 +181,24 @@ export default class instantSearch extends React.Component {
                 </View>
                 <View style={{height: 200, alignItems: 'center', justifyContent: 'center' }}>
                   {hasResults &&
-                    <Text>
-                      {this.state.url && this.state.url.startsWith('https://www.google.com/search')
-                        ? `Scroll down to search Google for "${this.state.text}"`
-                        : `Previous website is below`
-                      }
-                    </Text>
+                    <>
+                      <Image source={require('./img/scroll.png')} style={{ alignSelf: 'center',  width: 30, height: 40, marginBottom: 10, marginTop: 10, flexDirection: 'column', justifyContent: 'center', }}/>
+                      <Text style={{ color: '#9597A3', width: 200, textAlign: 'center' }}>
+                        {this.state.url && this.state.url.startsWith('https://www.google.de/search')
+                          ? `Scrolle nach unten um mit Google zu suchen`
+                          : `Previous website is below`
+                        }
+                      </Text>
+                    </>
                   }
                 </View>
               </ScrollView>
 
               <View style={{
                 height: Dimensions.get('screen').height  - statusBarHeight,
-                backgroundColor: theme.light.backgroundColor,
+                backgroundColor: theme.dark.backgroundColor,
               }} >
-                  {!this.state.scrollable && this.state.webViewLoaded &&
+                  {/* {!this.state.scrollable && this.state.webViewLoaded &&
                     <BackButton
                       onPress={() => {
                         this.scrollView.current.scrollTo({x: 0, y: 0, animated: true});
@@ -206,7 +206,7 @@ export default class instantSearch extends React.Component {
                         this.setState({ scrollable: true, })
                       }}
                     />
-                  }
+                  } */}
                 <WebView
                   nestedScrollEnabled={true}
                   scrollEnabled={true}
@@ -220,24 +220,20 @@ export default class instantSearch extends React.Component {
                 {!this.state.webViewLoaded &&
                   <View style={{
                     position: 'absolute',
-                    backgroundColor: theme.light.backgroundColor,
+                    backgroundColor: theme.dark.backgroundColor,
                     zIndex: 1001,
                     height: Dimensions.get('screen').height,
                     width: '100%',
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}>
-                    <Text>Loading..</Text>
+                    <Text style={{ color: '#9597A3' }}>Loading..</Text>
                   </View>
                 }
               </View>
             </ScrollView>
           )
         }
-        { !hasResults &&
-          <View style={{position: 'absolute', left: 0, right: 0, bottom: 10}}>
-            <Text style={{color: '#0078CA', textAlign: 'center'}} onPress={() => Linking.openURL('https://cliqz.com/en/privacy-browser')}>Privacy policy</Text>
-          </View>}
       </KeyboardAvoidingView>
     );
   }
@@ -245,7 +241,7 @@ export default class instantSearch extends React.Component {
 
 const theme = {
   dark: {
-    backgroundColor: 'rgba(0, 9, 23, 0.85)',
+    backgroundColor: 'rgb(25, 27, 63)',
   },
   light: {
     backgroundColor: 'rgba(240, 240, 240, 1)',
@@ -265,23 +261,25 @@ const styles = StyleSheet.create({
     top: 0,
     height: 45/2,
     zIndex: 1999,
-    backgroundColor: theme.light.backgroundColor,
+    backgroundColor: theme.dark.backgroundColor,
   },
   urlbar: {
     marginTop: 5,
-    marginLeft: 10,
-    marginRight: 10,
+    marginLeft: 20,
+    marginRight: 20,
     marginBottom: 5,
     zIndex: 2000,
     backgroundColor: 'white',
+    borderWidth: 0,
+    elevation: 2,
     // total height is 45 = 35 (TextInput height) + 5 (marginTop) + 5 (marginBottom)
   },
   container: {
     flex: 1,
-    backgroundColor: theme.light.backgroundColor,
+    backgroundColor: theme.dark.backgroundColor,
   },
   noresult: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 15,
@@ -289,5 +287,9 @@ const styles = StyleSheet.create({
   noresultText: {
     marginLeft: 5,
     marginTop: 5,
+    width: 200,
+    textAlign: 'center',
+    marginBottom: 10,
+    color: '#2186DB',
   },
 });

@@ -25,12 +25,11 @@ export default class UrlBar extends React.Component {
           flexDirection:'row',
           alignItems:'center',
           justifyContent:'center',
-          borderWidth:1,
-          borderColor:'#00B0F6',
-          borderRadius:25,
+          borderRadius: 10,
           ...style,
         }}
       >
+        <Image source={require('../img/search.png')} style={{ marginLeft: 10, width: 15, height: 15}}/>
         <View style={{ flex:5 }}>
           <TextInput
             autoCapitalize = 'none'
@@ -38,14 +37,16 @@ export default class UrlBar extends React.Component {
             onSubmitEditing={() => {
               Keyboard.dismiss();
             }}
-            placeholder="Search now"
+            placeholder="Anonym suchen"
+            placeholderTextColor="#C8C9D9"
+            selectionColor="#C8C9D9"
             autoFocus={true}
             returnKeyType='done'
             onFocus={onFocus}
             style={{
               backgroundColor: 'transparent',
               paddingBottom: 0,
-              paddingLeft: 15,
+              paddingLeft: 5,
               paddingTop: 0,
               height: 35,
             }}
