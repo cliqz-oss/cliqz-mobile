@@ -67,7 +67,7 @@ export default class instantSearch extends React.Component {
 
   onAction = ({ module, action, args, id }) => {
     return this.loadingPromise.then(() => {
-      return this.state.cliqz.app.modules[module].action(action, ...args).then((response) => {
+      return this.app.modules[module].action(action, ...args).then((response) => {
         return response;
       });
     }).catch(e => console.error(e));
@@ -146,17 +146,17 @@ export default class instantSearch extends React.Component {
           this.moveFinished(gestureState);
       }
     });
-    const app = new App();
+    this.app = new App();
     let cliqz;
-    this.loadingPromise = app.start().then(async () => {
-      await app.ready();
+    this.loadingPromise = this.app.start().then(async () => {
+      await this.app.ready();
       const config = {};//await Bridge.getConfig();
-      cliqz = new Cliqz(app, this.actions, this.setState.bind(this));
+      cliqz = new Cliqz(this.app, this.actions, this.setState.bind(this));
       this.setState({
         cliqz,
         config,
       });
-      app.events.sub('search:results', (results) => {
+      this.app.events.sub('search:results', (results) => {
         this.setState({ results })
       });
       cliqz.mobileCards.openLink = (url) => {
@@ -250,6 +250,13 @@ export default class instantSearch extends React.Component {
               this.urlbarRef.current.blur();
             }
           }}
+          onLoadEnd={({nativeEvent: { url, title }}) => 
+            this.app.events.pub('history:add', {
+              url,
+              title,
+              lastVisitDate: Date.now()
+            })
+          }
         />
         <Animated.View
           style={[styles.urlbarContainer, { top: this.state.position }]}
