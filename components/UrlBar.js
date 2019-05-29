@@ -18,7 +18,7 @@ export default class UrlBar extends React.Component {
   }
 
   render() {
-    const { value, onChanged, onFocus, style } = this.props;
+    const { value, onChanged, onFocus, onBlur, style } = this.props;
     return (
       <View
         style={{
@@ -40,9 +40,10 @@ export default class UrlBar extends React.Component {
             placeholder="Anonym suchen"
             placeholderTextColor="#C8C9D9"
             selectionColor="#C8C9D9"
-            autoFocus={true}
+            selectTextOnFocus={true}
             returnKeyType='done'
             onFocus={onFocus}
+            onBlur={onBlur}
             style={{
               backgroundColor: 'transparent',
               paddingBottom: 0,
