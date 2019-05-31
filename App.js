@@ -197,7 +197,7 @@ export default class instantSearch extends React.Component {
             }}>
             { !hasResults && this.state.isFocus ? (
               <View style={styles.noresult}>
-                <Image source={{ uri: 'img/lumen.png' }} style={{ alignSelf: 'center', width: 50, height: 50, marginBottom: 0, marginTop: 10, }}/>
+                <Image source={require('./img/lumen.png')} style={{ alignSelf: 'center', width: 50, height: 50, marginBottom: 0, marginTop: 10, }}/>
                 <Text style={styles.noresultText}>Bleib anonym mit Lumen Suche</Text>
               </View>
             ) : (
@@ -225,7 +225,7 @@ export default class instantSearch extends React.Component {
             <View style={{height: 200, alignItems: 'center', justifyContent: 'flex-end' }}>
               {hasResults &&
                 <>
-                  <Image  source={{ uri: 'img/scroll.png' }} style={{ alignSelf: 'center',  width: 30, height: 40, marginBottom: 10, marginTop: 10, flexDirection: 'column', justifyContent: 'center', }}/>
+                  <Image  source={require('./img/scroll.png')} style={{ alignSelf: 'center',  width: 30, height: 40, marginBottom: 10, marginTop: 10, flexDirection: 'column', justifyContent: 'center', }}/>
                   <Text style={{ color: '#9597A3', width: 200, textAlign: 'center', marginBottom: 20 }}>
                     Scrolle weiter um mit Google zu suchen
                   </Text>
