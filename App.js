@@ -40,8 +40,12 @@ export default class instantSearch extends React.Component {
         results: []
       },
       scrollable: true,
+      resultsScrollable: true,
       webViewLoaded: true,
+      isFocus: false,
     };
+    this.url = '';
+    this.scrollOffset = 0;
     this.scrollView = React.createRef();
     this.resultsScrollView = React.createRef();
   }
@@ -69,7 +73,8 @@ export default class instantSearch extends React.Component {
         this.setState({ results })
       });
       cliqz.mobileCards.openLink = (url) => {
-        this.scrollView.current.scrollTo({x: 0, y: Dimensions.get('screen').height, animated: true})
+        this.scrollView.current && this.scrollView.current.scrollToEnd({ animated: true })
+        this.currentUrl = url;
         this.setState({
           url,
           webViewLoaded: false,
@@ -86,10 +91,16 @@ export default class instantSearch extends React.Component {
   search = (text) => {
     this.setState({
       scrollable: true,
+      resultsScrollable: true,
       text,
-      url: `https://www.google.de/search?q=${text}`,
     });
-    this.state.cliqz.search.startSearch(text);
+    this.currentUrl = `https://www.google.de/search?q=${text}`;
+    if (text) {
+      this.state.cliqz.search.startSearch(text);
+    } else {
+      this.state.cliqz.search.stopSearch();
+      this.setState({ results: { results: [] }});
+    }
   }
 
   reportError = error => {
@@ -111,6 +122,7 @@ export default class instantSearch extends React.Component {
     const appearance = 'light';
     const hasResults = !(results.length === 0 || !this.state.cliqz || this.state.text ==='');
     const statusBarHeight = StatusBar.currentHeight;
+    const cardListStyle = { paddingLeft: 0, paddingRight: 0 };
     StatusBar.setBackgroundColor(theme.dark.backgroundColor, true);
     StatusBar.setBarStyle('light-content', true);
     return (
@@ -123,6 +135,11 @@ export default class instantSearch extends React.Component {
             onFocus={() => {
               this.resultsScrollView.current && this.resultsScrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
               this.scrollView.current && this.scrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
+              this.setState({ scrollable: true, resultsScrollable: true, isFocus: true });
+              this.currentUrl = this.currentUrl = `https://www.google.de/search?q=${this.state.text}`;
+            }}
+            onBlur={() => {
+              this.setState({ isFocus: false })
             }}
             onClear={() => {
               this.setState({ text: '' });
@@ -130,110 +147,117 @@ export default class instantSearch extends React.Component {
             style={styles.urlbar}
           />
         </View>
-        {
-          (
-            <ScrollView
-              style={{ height: Dimensions.get('screen').height - statusBarHeight,  }}
-              ref={this.scrollView}
-              snapToOffsets={[Dimensions.get('screen').height ]}
-              scrollEnabled={hasResults && this.state.scrollable}
-              onScroll={e => {
-                let paddingToBottom = 10;
-                paddingToBottom += e.nativeEvent.layoutMeasurement.height;
-                if(e.nativeEvent.contentOffset.y >= e.nativeEvent.contentSize.height - paddingToBottom) {
-                  this.setState({scrollable: false})
-                  // make something...
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          style={{ height: Dimensions.get('window').height - statusBarHeight, }}
+          ref={this.scrollView}
+          snapToOffsets={[ Dimensions.get('window').height - statusBarHeight ]}
+          scrollEnabled={hasResults && this.state.scrollable}
+          onScroll={({ nativeEvent }) => {
+            this.scrollOffset = nativeEvent.contentOffset.y;
+            if (nativeEvent.contentOffset.y >= nativeEvent.contentSize.height - nativeEvent.layoutMeasurement.height) {
+              this.setState({scrollable: false})
+              // make something...
+            }
+            if (nativeEvent.contentOffset.y > 0) {
+              this.setState({ resultsScrollable: false, url: this.currentUrl });
+            } else {
+              this.setState({ resultsScrollable: true });
+            }
+          }}
+        >
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            style={{
+              height: Dimensions.get('window').height - statusBarHeight,
+            }}
+            nestedScrollEnabled={true}
+            scrollEnabled={true}
+            ref={this.resultsScrollView}
+            onScrollEndDrag={({ nativeEvent }) => {
+              if (this.scrollOffset > 0) {
+                if (nativeEvent.velocity.y > 0.1) {
+                  this.scrollView.current && this.scrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
+                } else {
+                  this.scrollView.current && this.scrollView.current.scrollToEnd({ animated: true, });
                 }
-              }}
-            >
-              <ScrollView
-                style={{
-                  height: Dimensions.get('screen').height - statusBarHeight,
-                }}
-                nestedScrollEnabled={hasResults && this.state.scrollable}
-                scrollEnabled={hasResults && this.state.scrollable}
-                ref={this.resultsScrollView}
-              >
-                <View style={{ height: 25 }} />
-                <View style={{
-                  backgroundColor: 'white',
-                  flex: 1,
-                  marginRight: 20,
-                  marginLeft: 20,
-                  borderBottomLeftRadius: 10,
-                  borderBottomRightRadius: 10,
-                  paddingTop: 10,
-                  paddingBottom: 10,
-                }}>
-                {!hasResults ? (
-                  <View style={styles.noresult}>
-                    <Image source={require('./img/lumen.png')} style={{ alignSelf: 'center', width: 50, height: 50, marginBottom: 0, marginTop: 10, }}/>
-                    <Text style={styles.noresultText}>Lumen private suche für sorgenfreies surfen</Text>
-                  </View>
-                ) : (
-                  <CliqzProvider value={this.state.cliqz}>
-                    <ThemeProvider value={appearance}>
-                      <SearchUIVertical results={results} meta={meta} theme={appearance} />
-                    </ThemeProvider>
-                  </CliqzProvider>
-
-                )}
-                </View>
-                <View style={{height: 200, alignItems: 'center', justifyContent: 'center' }}>
-                  {hasResults &&
-                    <>
-                      <Image source={require('./img/scroll.png')} style={{ alignSelf: 'center',  width: 30, height: 40, marginBottom: 10, marginTop: 10, flexDirection: 'column', justifyContent: 'center', }}/>
-                      <Text style={{ color: '#9597A3', width: 200, textAlign: 'center' }}>
-                        {this.state.url && this.state.url.startsWith('https://www.google.de/search')
-                          ? `Scrolle nach unten um mit Google zu suchen`
-                          : `Previous website is below`
-                        }
-                      </Text>
-                    </>
-                  }
-                </View>
-              </ScrollView>
-
-              <View style={{
-                height: Dimensions.get('screen').height  - statusBarHeight,
-                backgroundColor: theme.dark.backgroundColor,
-              }} >
-                  {/* {!this.state.scrollable && this.state.webViewLoaded &&
-                    <BackButton
-                      onPress={() => {
-                        this.scrollView.current.scrollTo({x: 0, y: 0, animated: true});
-                        this.resultsScrollView.current.scrollTo({x: 0, y: 0, animated: true});
-                        this.setState({ scrollable: true, })
-                      }}
-                    />
-                  } */}
-                <WebView
-                  nestedScrollEnabled={true}
-                  scrollEnabled={true}
-                  onLoadStart={() => setTimeout(() => this.setState({ webViewLoaded: true }), 1000) }
-                  style={{
-                    height: Dimensions.get('screen').height  - statusBarHeight - 45,
-                    marginTop: 45,
-                  }}
-                  source={{uri: this.state.url}}
-                />
-                {!this.state.webViewLoaded &&
-                  <View style={{
-                    position: 'absolute',
-                    backgroundColor: theme.dark.backgroundColor,
-                    zIndex: 1001,
-                    height: Dimensions.get('screen').height,
-                    width: '100%',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                    <Text style={{ color: '#9597A3' }}>Loading..</Text>
-                  </View>
-                }
+              }
+            }}
+          >
+            <View style={{ height: 25 }} />
+            <View style={{
+              backgroundColor: 'white',
+              flex: 1,
+              marginRight: 20,
+              marginLeft: 20,
+              borderBottomLeftRadius: 10,
+              borderBottomRightRadius: 10,
+              paddingTop: hasResults ? 10 : 0,
+              paddingBottom: hasResults ? 10 : 0,
+            }}>
+            { !hasResults && this.state.isFocus ? (
+              <View style={styles.noresult}>
+                <Image source={{ uri: 'img/lumen.png' }} style={{ alignSelf: 'center', width: 50, height: 50, marginBottom: 0, marginTop: 10, }}/>
+                <Text style={styles.noresultText}>Bleib anonym mit Lumen Suche</Text>
               </View>
-            </ScrollView>
-          )
-        }
+            ) : (
+              <>
+                <CliqzProvider value={this.state.cliqz}>
+                  <ThemeProvider value={appearance}>
+                    <SearchUIVertical
+                      results={results}
+                      meta={meta}
+                      theme={appearance}
+                      cardListStyle={cardListStyle}
+                      style={{ backgroundColor: 'white' }}
+                      separator={<View style={{ marginTop: 8, marginBottom: 8, backgroundColor: '#EAEAEA', height: 1 }} />}
+                    />
+                  </ThemeProvider>
+                </CliqzProvider>
+                { hasResults && (
+                  <View style={{ height: 30, alignItems: 'center', justifyContent: 'flex-end', borderTopColor: '#EAEAEA', borderTopWidth: 1 }}>
+                    <Text>Diese Suchantrage ist anonym</Text>
+                  </View>
+                )}
+              </>
+            )}
+            </View>
+            <View style={{height: 200, alignItems: 'center', justifyContent: 'flex-end' }}>
+              {hasResults &&
+                <>
+                  <Image  source={{ uri: 'img/scroll.png' }} style={{ alignSelf: 'center',  width: 30, height: 40, marginBottom: 10, marginTop: 10, flexDirection: 'column', justifyContent: 'center', }}/>
+                  <Text style={{ color: '#9597A3', width: 200, textAlign: 'center', marginBottom: 20 }}>
+                    Scrolle weiter um mit Google zu suchen
+                  </Text>
+                </>
+              }
+            </View>
+          </ScrollView>
+          <WebView
+            nestedScrollEnabled={true}
+            scrollEnabled={true}
+            onLoadStart={() => setTimeout(() => this.setState({ webViewLoaded: true }), 1000) }
+            style={{
+              flex: 0,
+              height: Dimensions.get('window').height - statusBarHeight - 45,
+              marginTop: 45,
+            }}
+            source={{uri: this.state.url}}
+          />
+          {/* {!this.state.webViewLoaded &&
+            <View style={{
+              position: 'absolute',
+              backgroundColor: theme.dark.backgroundColor,
+              zIndex: 1001,
+              height: Dimensions.get('window').height,
+              width: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <Text style={{ color: '#9597A3' }}>Loading..</Text>
+            </View>
+          } */}
+        </ScrollView>
       </KeyboardAvoidingView>
     );
   }

@@ -4,16 +4,17 @@
   "private": true,
   "scripts": {
     "start": "react-native start --reset-cache",
-    "build-android": "react-native bundle --platform android --entry-file index.js --bundle-output ./android/app/src/main/assets/index.android.bundle --dev=false --reset-cache",
+    "build-android": "react-native bundle --platform android --entry-file index.js --bundle-output ./android/app/src/main/assets/index.android.bundle --dev=false --reset-cache --assets-dest ./android/app/src/main/ && cp -R ./img ./android/app/src/main/assets/",
     "run-android": "react-native run-android",
     "test": "jest"
   },
   "dependencies": {
-    "browser-core": "https://s3.amazonaws.com/cdncliqz/update/edge/rn-ghostery-android/cliqz-mobile/1.36.0.9fcac3a.tgz",
+    "browser-core": "https://s3.amazonaws.com/cdncliqz/update/edge/instant-search/master/1.38.0.1b67.5b3fbb2.tgz",
     "react": "16.8.3",
     "react-native": "0.59.1",
     "react-native-gesture-handler": "^1.0.12",
     "react-native-snap-carousel": "^3.7.5",
+    "react-native-sqlite-2": "^2.0.2",
     "react-native-vector-icons": "^6.4.2",
     "react-native-view-shot": "^2.2.0",
     "react-native-webview": "^5.8.1"
@@ -24,6 +25,7 @@
     "babel-jest": "^24.5.0",
     "jest": "^24.5.0",
     "metro-react-native-babel-preset": "^0.53.1",
+    "react-native-fs": "^2.13.3",
     "react-test-renderer": "16.8.3"
   },
   "jest": {
