@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "react-native start --reset-cache",
-    "build-android": "react-native bundle --platform android --entry-file index.js --bundle-output ./android/app/src/main/assets/index.android.bundle --dev=false --reset-cache --assets-dest ./android/app/src/main/ && cp -R ./img ./android/app/src/main/assets/",
+    "build-android": "react-native bundle --platform android --entry-file index.js --bundle-output ./android/app/src/main/assets/index.android.bundle --dev=false --reset-cache --assets-dest ./android/app/src/main/res",
     "run-android": "react-native run-android",
     "test": "jest"
   },
