@@ -8,6 +8,12 @@ export default class UrlBar extends React.Component {
     this.textInputRef = React.createRef();
   }
 
+  blur() {
+    if (this.textInputRef.current) {
+      this.textInputRef.current.blur();
+    }
+  }
+
   onClear = () => {
     if (this.textInputRef.current) {
       this.textInputRef.current.focus();
@@ -39,7 +45,6 @@ export default class UrlBar extends React.Component {
               Keyboard.dismiss();
             }}
             placeholder="Search now"
-            autoFocus={true}
             returnKeyType='done'
             onFocus={onFocus}
             style={{
