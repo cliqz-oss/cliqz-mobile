@@ -9,15 +9,16 @@
 import React from 'react';
 import {
   DeviceEventEmitter,
-  KeyboardAvoidingView,
-  Linking,
   StyleSheet,
   Text,
   ScrollView,
   View,
   Dimensions,
-  Image,
   StatusBar,
+  Keyboard,
+  Animated,
+  PanResponder,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Cliqz from './Cliqz';
@@ -27,12 +28,25 @@ import App from 'browser-core/build/modules/core/app';
 import { Provider as CliqzProvider } from 'browser-core/build/modules/mobile-cards/cliqz';
 import { Provider as ThemeProvider } from 'browser-core/build/modules/mobile-cards-vertical/withTheme';
 import UrlBar from './components/UrlBar';
-import BackButton from './components/BackButton';
+
+const LIMIT_UP = 10;
+const URLBAR_HEIGHT = 65;
+const SEARCH__BUTTON_HEIGHT = 50;
+
 
 export default class instantSearch extends React.Component {
   constructor(props) {
     super(props);
+    const statusBarHeight = StatusBar.currentHeight;
+    const windowHeight = Dimensions.get('window').height - statusBarHeight
+    this.isUrlbarDown = true;
     this.state = {
+      isAnimating: false,
+      searchButtonVisible: false,
+      url: 'https://lumenbrowser.com',
+      windowHeight,
+      touched: false,
+      position: new Animated.Value(windowHeight - URLBAR_HEIGHT),
       text: '',
       results: [],
       config: {},
@@ -41,53 +55,154 @@ export default class instantSearch extends React.Component {
       },
       scrollable: true,
       webViewLoaded: true,
+      serpMessage: 'keep scrolling to go to google...',
     };
-    this.scrollView = React.createRef();
-    this.resultsScrollView = React.createRef();
+    this.drawerRef = React.createRef();
+    this.urlbarRef = React.createRef();
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return !nextState.isAnimating;
   }
 
   onAction = ({ module, action, args, id }) => {
     return this.loadingPromise.then(() => {
-      return this.state.cliqz.app.modules[module].action(action, ...args).then((response) => {
+      return this.app.modules[module].action(action, ...args).then((response) => {
         return response;
       });
     }).catch(e => console.error(e));
   }
 
-  async componentWillMount() {
-    const app = new App();
+  moveDrawerView(gestureState) {
+    if (!this.drawerRef.current) return;
+    const position = gestureState.moveY;
+    this.updatePosition(position);
+  }
+
+  sendUrlbarToTop({ v0, noAnimation } = {}) {
+    this.isUrlbarDown = false;
+    if (noAnimation) {
+      this.updatePosition(LIMIT_UP);
+    } else {
+      this.animateToPosition(LIMIT_UP, v0);
+    }
+  }
+
+  sendUrlbarToBottom({ v0, noAnimation } = {}) {
+    this.isUrlbarDown = true;
+    if (noAnimation) {
+      this.updatePosition(this.state.windowHeight - URLBAR_HEIGHT);
+    } else {
+      this.animateToPosition(this.state.windowHeight - URLBAR_HEIGHT, v0);
+    }
+  }
+
+  moveFinished(gestureState) {
+    if (!this.drawerRef.current) return;
+      const isGoingUp = gestureState.vy < 0;
+      if (isGoingUp) {
+        this.sendUrlbarToTop({ v0: gestureState.vy });
+      } else {
+        this.sendUrlbarToBottom({ v0: gestureState.vy });
+        Keyboard.dismiss();
+      }
+  }
+
+  isAValidMovement = ({ dx, dy, moveY }) => {
+    const moveTravelledFarEnough =
+    Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 2;
+    const notTooHigh = moveY >= LIMIT_UP;
+    const notTooLow = moveY <= this.state.windowHeight - URLBAR_HEIGHT;
+    return moveTravelledFarEnough && notTooHigh && notTooLow;
+  }
+
+  updatePosition(position) {
+    this.state.position.setValue(position);
+  }
+
+  animateToPosition(position, v0 = 20) {
+    this.setState({ isAnimating: true });
+    Animated.spring(this.state.position, {
+      toValue: position,
+      velocity: v0,
+      speed: 16,
+      bounciness: 6,
+    }).start(() => this.setState({ isAnimating: false }));
+  }
+
+  componentWillMount() {
+    this._panGesture = PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return (
+            this.state.touched
+        );
+      },
+      onPanResponderMove: (evt, gestureState) => {
+          if (this.isAValidMovement(gestureState)) {
+            this.moveDrawerView(gestureState);
+          }
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+          this.moveFinished(gestureState);
+      }
+    });
+    this.app = new App();
     let cliqz;
-    this.loadingPromise = app.start().then(async () => {
-      await app.ready();
+    this.loadingPromise = this.app.start().then(async () => {
+      await this.app.ready();
       const config = {};//await Bridge.getConfig();
-      cliqz = new Cliqz(app, this.actions, this.setState.bind(this));
+      cliqz = new Cliqz(this.app, this.actions, this.setState.bind(this));
       this.setState({
         cliqz,
         config,
       });
-      app.events.sub('search:results', (results) => {
+      this.app.events.sub('search:results', (results) => {
         this.setState({ results })
       });
       cliqz.mobileCards.openLink = (url) => {
-        this.scrollView.current.scrollTo({x: 0, y: Dimensions.get('screen').height, animated: true})
         this.setState({
           url,
           webViewLoaded: false,
         });
+        this.sendUrlbarToBottom();
       };
     }).catch(console.log);
     DeviceEventEmitter.addListener('action', this.onAction);
   }
 
-  componentWillUnmount() {
-    DeviceEventEmitter.removeAllListeners();
+  componentDidMount() {
+    this.keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      this._keyboardDidShow,
+    );
+    this.keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      this._keyboardDidHide,
+    );
   }
 
-  search = (text) => {
-    this.setState({
+  componentWillUnmount() {
+    DeviceEventEmitter.removeAllListeners();
+    this.keyboardDidShowListener.remove();
+    this.keyboardDidHideListener.remove();
+    this.keyboardDidChangeFrameListener.remove();
+  }
+
+  _keyboardDidShow = () => {
+    this.setState({ searchButtonVisible: false })
+  }
+
+  _keyboardDidHide = () => {
+    this.setState({ searchButtonVisible: true })
+  }
+
+  search = async (text) => {
+    await this.setState({
       text,
-      url: `https://www.google.com/search?q=${text}`,
     });
+    if (text && this.isUrlbarDown) {
+      this.sendUrlbarToTop();
+    }
     this.state.cliqz.search.startSearch(text);
   }
 
@@ -109,136 +224,81 @@ export default class instantSearch extends React.Component {
     const meta = this.state.results.meta || {};
     const appearance = 'light';
     const hasResults = !(results.length === 0 || !this.state.cliqz || this.state.text ==='');
-    const statusBarHeight = StatusBar.currentHeight;
     StatusBar.setBackgroundColor(theme.light.backgroundColor, true);
     StatusBar.setBarStyle('dark-content', true);
+    let resultsHeight = this.state.windowHeight - URLBAR_HEIGHT - LIMIT_UP;
+    if (this.state.searchButtonVisible) {
+      resultsHeight -= SEARCH__BUTTON_HEIGHT;
+    }
     return (
-      <KeyboardAvoidingView style={styles.container} enabled={!hasResults}>
-        <View style={styles.urlbarContainer}>
-          <View style={styles.urlbarHalfBackground}/>
-          <UrlBar
-            value={this.state.text}
-            onChanged={this.search}
-            onFocus={() => {
-              this.resultsScrollView.current && this.resultsScrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
-              this.scrollView.current && this.scrollView.current.scrollTo({ x: 0, y: 0, animated: true, });
-            }}
-            onClear={() => {
-              this.setState({ text: '' });
-            }}
-            style={styles.urlbar}
-          />
-        </View>
-        {
-          (
-            <ScrollView
-              style={{ height: Dimensions.get('screen').height - statusBarHeight,  }}
-              ref={this.scrollView}
-              snapToOffsets={[Dimensions.get('screen').height ]}
-              scrollEnabled={hasResults && this.state.scrollable}
-              onScroll={e => {
-                let paddingToBottom = 10;
-                paddingToBottom += e.nativeEvent.layoutMeasurement.height;
-                if(e.nativeEvent.contentOffset.y >= e.nativeEvent.contentSize.height - paddingToBottom) {
-                  this.setState({scrollable: false})
-                  // make something...
-                }
-              }}
-            >
-              <ScrollView
-                style={{
-                  height: Dimensions.get('screen').height - statusBarHeight,
+      <View
+        style={styles.container} 
+        enabled={!hasResults}
+        onLayout={async (e) => {
+          await this.setState({ windowHeight: e.nativeEvent.layout.height });
+          if (this.isUrlbarDown) {
+            // update urlbar's position if it was down
+            this.sendUrlbarToBottom({ noAnimation: true });
+          }
+        }}
+      >
+        <WebView
+          style={{ marginBottom: URLBAR_HEIGHT }}
+          source={{uri: this.state.url}}
+          onTouchStart={() => {
+            if (this.urlbarRef.current) {
+              this.urlbarRef.current.blur();
+            }
+          }}
+          onLoadEnd={({nativeEvent: { url, title }}) => 
+            this.app.events.pub('history:add', {
+              url,
+              title,
+              lastVisitDate: Date.now()
+            })
+          }
+        />
+        <Animated.View
+          style={[styles.urlbarContainer, { top: this.state.position }]}
+          ref={this.drawerRef}
+          {...this._panGesture.panHandlers}
+        >
+          <TouchableWithoutFeedback
+            onPressIn={() => this.setState({touched: true})}
+            onPressOut={() => this.setState({touched: false})}
+          >
+            <View>
+              <View style={styles.notch} />
+              <UrlBar
+                value={this.state.text}
+                onChanged={this.search}
+                onFocus={() => {}}
+                onClear={() => {
+                  this.setState({ text: '' });
                 }}
-                nestedScrollEnabled={hasResults && this.state.scrollable}
-                scrollEnabled={hasResults && this.state.scrollable}
-                ref={this.resultsScrollView}
-              >
-                <View style={{ height: 25 }} />
-                <View style={{
-                  backgroundColor: 'rgb(245,245,245)',
-                  flex: 1,
-                  marginRight: 10,
-                  marginLeft: 10,
-                  borderColor: '#00B0F6',
-                  borderLeftWidth: 1,
-                  borderRightWidth: 1,
-                  borderBottomWidth: 1,
-                  borderBottomLeftRadius: 25,
-                  borderBottomRightRadius: 25,
-                  paddingTop: 10,
-                  paddingBottom: 10,
-                }}>
-                {!hasResults ? (
-                  <View style={styles.noresult}>
-                    <Image source={require('./img/logo.png')} style={{width: 30, height: 30, marginBottom: 10, marginTop: 10, }}/>
-                    <Text style={styles.noresultText}>Powered by Cliqz search</Text>
-                  </View>
-                ) : (
-                  <CliqzProvider value={this.state.cliqz}>
-                    <ThemeProvider value={appearance}>
-                      <SearchUIVertical results={results} meta={meta} theme={appearance} />
-                    </ThemeProvider>
-                  </CliqzProvider>
-
-                )}
-                </View>
-                <View style={{height: 200, alignItems: 'center', justifyContent: 'center' }}>
-                  {hasResults &&
-                    <Text>
-                      {this.state.url && this.state.url.startsWith('https://www.google.com/search')
-                        ? `Scroll down to search Google for "${this.state.text}"`
-                        : `Previous website is below`
-                      }
-                    </Text>
-                  }
-                </View>
-              </ScrollView>
-
-              <View style={{
-                height: Dimensions.get('screen').height  - statusBarHeight,
-                backgroundColor: theme.light.backgroundColor,
-              }} >
-                  {!this.state.scrollable && this.state.webViewLoaded &&
-                    <BackButton
-                      onPress={() => {
-                        this.scrollView.current.scrollTo({x: 0, y: 0, animated: true});
-                        this.resultsScrollView.current.scrollTo({x: 0, y: 0, animated: true});
-                        this.setState({ scrollable: true, })
-                      }}
-                    />
-                  }
-                <WebView
-                  nestedScrollEnabled={true}
-                  scrollEnabled={true}
-                  onLoadStart={() => setTimeout(() => this.setState({ webViewLoaded: true }), 1000) }
-                  style={{
-                    height: Dimensions.get('screen').height  - statusBarHeight - 45,
-                    marginTop: 45,
-                  }}
-                  source={{uri: this.state.url}}
-                />
-                {!this.state.webViewLoaded &&
-                  <View style={{
-                    position: 'absolute',
-                    backgroundColor: theme.light.backgroundColor,
-                    zIndex: 1001,
-                    height: Dimensions.get('screen').height,
-                    width: '100%',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                    <Text>Loading..</Text>
-                  </View>
-                }
+                style={styles.urlbar}
+                ref={this.urlbarRef}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+          <ScrollView
+            style={{ height: resultsHeight}}
+          >
+            <CliqzProvider value={this.state.cliqz}>
+              <ThemeProvider value={appearance}>
+                <SearchUIVertical results={results} meta={meta} theme={appearance} />
+              </ThemeProvider>
+            </CliqzProvider>
+          </ScrollView>
+          { this.state.searchButtonVisible &&
+            <TouchableWithoutFeedback onPress={() => this.state.cliqz.mobileCards.openLink(`https://www.google.com/search?q=${this.state.text}`)}>
+              <View style={{ height: SEARCH__BUTTON_HEIGHT, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>search google</Text>
               </View>
-            </ScrollView>
-          )
-        }
-        { !hasResults &&
-          <View style={{position: 'absolute', left: 0, right: 0, bottom: 10}}>
-            <Text style={{color: '#0078CA', textAlign: 'center'}} onPress={() => Linking.openURL('https://cliqz.com/en/privacy-browser')}>Privacy policy</Text>
-          </View>}
-      </KeyboardAvoidingView>
+            </TouchableWithoutFeedback>
+          }
+        </Animated.View>
+      </View>
     );
   }
 }
@@ -253,18 +313,17 @@ const theme = {
 }
 
 const styles = StyleSheet.create({
+  notch: {
+    marginTop: 15,
+    width: 50,
+    height: 5,
+    backgroundColor: 'rgb(90, 90, 90)',
+    alignSelf: 'center',
+  },
   urlbarContainer: {
     position: 'absolute',
-    top: 0,
     zIndex: 2000,
     width: '100%',
-  },
-  urlbarHalfBackground: {
-    position: 'absolute',
-    width: '100%',
-    top: 0,
-    height: 45/2,
-    zIndex: 1999,
     backgroundColor: theme.light.backgroundColor,
   },
   urlbar: {
@@ -274,20 +333,9 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     zIndex: 2000,
     backgroundColor: 'white',
-    // total height is 45 = 35 (TextInput height) + 5 (marginTop) + 5 (marginBottom)
   },
   container: {
     flex: 1,
     backgroundColor: theme.light.backgroundColor,
-  },
-  noresult: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 15,
-  },
-  noresultText: {
-    marginLeft: 5,
-    marginTop: 5,
   },
 });
