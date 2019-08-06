@@ -11,6 +11,7 @@
     "react": "16.8.3",
     "react-native": "0.59.1",
     "react-native-gesture-handler": "^1.0.12",
+    "react-native-localization": "^2.1.5",
     "react-native-snap-carousel": "^3.7.5",
     "react-native-view-shot": "^2.2.0"
   },

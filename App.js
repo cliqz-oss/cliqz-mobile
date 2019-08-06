@@ -18,6 +18,7 @@ import {
   TouchableHighlight,
   View,
 } from 'react-native';
+import LocalizedStrings from 'react-native-localization'
 import './setup';
 import Cliqz from './Cliqz';
 import console from 'browser-core/build/modules/core/console';
@@ -25,6 +26,17 @@ import SearchUIVertical from 'browser-core/build/modules/mobile-cards-vertical/S
 import App from 'browser-core/build/modules/core/app';
 import { Provider as CliqzProvider } from 'browser-core/build/modules/mobile-cards/cliqz';
 import { Provider as ThemeProvider } from 'browser-core/build/modules/mobile-cards-vertical/withTheme';
+
+let strings = new LocalizedStrings({
+  "en-US": {
+    searchNowPlaceHolder:"Search Now",
+    privacyPolicyLabel: "Privacy Policy"
+  },
+  "de": {
+    searchNowPlaceHolder:"Jetzt suchen",
+    privacyPolicyLabel: "Datenschutzerklärung"
+  }
+});
 
 type Props = {};
 export default class instantSearch extends React.Component<Props> {
@@ -122,7 +134,7 @@ export default class instantSearch extends React.Component<Props> {
                 autoCapitalize = 'none'
                 onChangeText={this.search.bind(this)}
                 onSubmitEditing={this.submit}
-                placeholder="Search now"
+                placeholder={strings.searchNowPlaceHolder}
                 autoFocus={true}
                 returnKeyType='search'
                 style={styles.text}
@@ -159,7 +171,9 @@ export default class instantSearch extends React.Component<Props> {
         }
         { !hasResults &&
           <View style={{position: 'absolute', left: 0, right: 0, bottom: 10}}>
-            <Text style={{color: '#0078CA', textAlign: 'center'}} onPress={() => Linking.openURL('https://cliqz.com/en/privacy-browser')}>Privacy policy</Text>
+            <Text style={{color: '#0078CA', textAlign: 'center'}} onPress={() => Linking.openURL('https://cliqz.com/privacy-browser')}>
+              {strings.privacyPolicyLabel}
+            </Text>
           </View>}
       </KeyboardAvoidingView>
     );

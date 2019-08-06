@@ -2,6 +2,8 @@ package com.cliqz.searchapp;
 
 import android.app.Application;
 
+import com.babisoft.ReactNativeLocalization.ReactNativeLocalization;
+import com.babisoft.ReactNativeLocalization.ReactNativeLocalizationPackage;
 import com.cliqz.searchapp.BuildConfig;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -24,7 +26,8 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.asList(
           new MainReactPackage(),
-          new BridgePackage()
+          new BridgePackage(),
+          new ReactNativeLocalizationPackage()
       );
     }
 
