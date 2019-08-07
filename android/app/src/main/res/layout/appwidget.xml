@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_root_view"
-    android:layout_width="match_parent" android:layout_height="40dp"
+    android:layout_width="match_parent" android:layout_height="50dp"
     android:background="@drawable/widget_background"
     android:padding="@dimen/widget_padding_size">
 

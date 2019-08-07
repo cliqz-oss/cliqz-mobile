@@ -104,7 +104,7 @@ export default class instantSearch extends React.Component<Props> {
     if (results.length === 1 && results[0].type === 'navigate-to') {
       Linking.openURL(results[0].url);
     } else if (query){
-      Linking.openURL(`https://suche.cliqz.com/#${query}`);
+      Linking.openURL(`https://serp.cliqz.com/#/search?q=${query}`);
     }
   }
 
@@ -155,11 +155,11 @@ export default class instantSearch extends React.Component<Props> {
         {
           !hasResults
           ? (
-            // <View style={styles.noresult}>
-            //   <Image source={require('./img/logo.png')} style={{width: 30, height: 30}}/>
-            //   <Text style={styles.noresultText}>Powered by Cliqz search</Text>
-            // </View>
-            null
+            <View style={styles.noresult}>
+              <Image
+                source={require('./img/logo.png')}
+                style={{width: 200, height: 71}}/>
+            </View>
           )
           : (
             <CliqzProvider value={this.state.cliqz}>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   noresult: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 10,
+    marginTop: 30,
   },
   noresultText: {
     marginLeft: 5,
