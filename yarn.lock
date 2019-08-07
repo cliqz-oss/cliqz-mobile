@@ -3893,6 +3893,11 @@ load-json-file@^4.0.0:
     pify "^3.0.0"
     strip-bom "^3.0.0"
 
+localized-strings@^0.2.0:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/localized-strings/-/localized-strings-0.2.3.tgz#6caed1bc0476668331ed4e96729676ae8f7a0295"
+  integrity sha512-uWO3E2jDynMBsJIglBMhALO3f1DnfOFzCSoCt+fPLGx94PXU1KfbgBx04J4xfjPwozRowAHk8bfaw8bgeKTTCQ==
+
 locate-path@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-2.0.0.tgz#2b568b265eec944c6d9c0de9c3dbbbca0354cd8e"
@@ -5298,6 +5303,13 @@ react-lifecycles-compat@^3.0.0:
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
 
+react-localization@^1.0.14:
+  version "1.0.15"
+  resolved "https://registry.yarnpkg.com/react-localization/-/react-localization-1.0.15.tgz#624bd0b514100488a84204e20b398750313d1708"
+  integrity sha512-s+yK3EqPUhN8kAfUIoA5m0a0iGOvxB3DrvngYnSZNLRQRX+yS7LYfTuKT66KVa3Cr6EP4iGRtw4XRqpsi1ZLjw==
+  dependencies:
+    localized-strings "^0.2.0"
+
 react-modal@3.6.1:
   version "3.6.1"
   resolved "https://registry.yarnpkg.com/react-modal/-/react-modal-3.6.1.tgz#54d27a1ec2b493bbc451c7efaa3557b6af82332d"
@@ -5325,6 +5337,13 @@ react-native-gesture-handler@^1.0.12:
     hoist-non-react-statics "^2.3.1"
     invariant "^2.2.2"
     prop-types "^15.5.10"
+
+react-native-localization@^2.1.5:
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/react-native-localization/-/react-native-localization-2.1.5.tgz#0bde1252bdbb0b21f80a6e2a96a195116626eb8f"
+  integrity sha512-hDtLMEwHtHNm9xUXllWBklL887wPsR/TNNNnq9xeKBMrWtf9E+uS99NL34I/uMhWIvcVqQiFnCQ36bQy+swKOQ==
+  dependencies:
+    react-localization "^1.0.14"
 
 react-native-snap-carousel@^3.7.5:
   version "3.7.5"
