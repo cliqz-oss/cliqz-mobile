@@ -7,8 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.RemoteViews;
 
-import com.cliqz.searchapp.R;
-
 public class WidgetProvider extends AppWidgetProvider {
 
     @Override

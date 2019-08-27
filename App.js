@@ -43,6 +43,7 @@ export default class instantSearch extends React.Component<Props> {
   constructor(props) {
     super(props);
     this.state = {
+      initialText: props.query || '',
       text: '',
       results: [],
       config: {},
@@ -61,7 +62,7 @@ export default class instantSearch extends React.Component<Props> {
     }).catch(e => console.error(e));
   }
 
-  async componentWillMount() {
+  async componentDidMount() {
     const app = new App();
     let cliqz;
     this.loadingPromise = app.start().then(async () => {
@@ -75,8 +76,13 @@ export default class instantSearch extends React.Component<Props> {
       app.events.sub('search:results', (results) => {
         this.setState({ results })
       });
+      if (this.state.initialText) {
+        this.search(this.state.initialText);
+        this.state.initialText = '';
+      }
     }).catch(console.log);
     DeviceEventEmitter.addListener('action', this.onAction);
+    DeviceEventEmitter.addListener('performSearch', this.search);
   }
 
   componentWillUnmount() {
@@ -104,7 +110,7 @@ export default class instantSearch extends React.Component<Props> {
     if (results.length === 1 && results[0].type === 'navigate-to') {
       Linking.openURL(results[0].url);
     } else if (query){
-      Linking.openURL(`https://serp.cliqz.com/#/search?q=${query}`);
+      Linking.openURL(`https://serp.cliqz.com/search?q=${query}`);
     }
   }
 

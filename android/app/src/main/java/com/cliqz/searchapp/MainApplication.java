@@ -2,9 +2,7 @@ package com.cliqz.searchapp;
 
 import android.app.Application;
 
-import com.babisoft.ReactNativeLocalization.ReactNativeLocalization;
 import com.babisoft.ReactNativeLocalization.ReactNativeLocalizationPackage;
-import com.cliqz.searchapp.BuildConfig;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;

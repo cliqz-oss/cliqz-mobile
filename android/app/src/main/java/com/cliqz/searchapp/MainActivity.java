@@ -1,6 +1,7 @@
 package com.cliqz.searchapp;
 
 import com.facebook.react.ReactActivity;
+import com.facebook.react.ReactActivityDelegate;
 
 public class MainActivity extends ReactActivity {
 
@@ -11,5 +12,10 @@ public class MainActivity extends ReactActivity {
     @Override
     protected String getMainComponentName() {
         return "cliqzMobile";
+    }
+
+    @Override
+    protected ReactActivityDelegate createReactActivityDelegate() {
+        return new MainActivityDelegate(this, getMainComponentName());
     }
 }
