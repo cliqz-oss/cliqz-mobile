@@ -110,7 +110,7 @@ export default class instantSearch extends React.Component<Props> {
     if (results.length === 1 && results[0].type === 'navigate-to') {
       Linking.openURL(results[0].url);
     } else if (query){
-      Linking.openURL(`https://serp.cliqz.com/search?q=${query}`);
+      Linking.openURL(`https://beta.cliqz.com/search?q=${query}#channel=android`);
     }
   }
 
